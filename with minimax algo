@@ -1,0 +1,179 @@
+import math
+import random
+
+class TicTacToe():
+    def __init__(self):
+        self.board = [" " for i in range(9)]
+        self.winner = None    
+    
+    
+    @staticmethod
+    def print_posi():
+        posi_li = [[str(i) for i in range(j * 3, (j + 1) * 3)]for j in range(3)]
+        count = 0
+        for row in posi_li:
+            count += 1  
+            if count == 3:
+                print(" | ".join(row))
+            else:
+                print(" | ".join(row))
+                print("---------")                             
+   
+            
+    def print_board(self):
+        count = 0
+        for row in [self.board[i * 3:(i + 1) * 3] for i in range(3)]:
+            count += 1  
+            if count == 3:
+                print(" | ".join(row))
+            else:
+                print(" | ".join(row))
+                print("---------")    
+   
+    
+    def make_move(self, posi, player):
+        if self.board[posi] == " ":
+            self.board[posi] = player
+            if self.is_win(posi, player):
+                self.winner = player
+  
+                
+    def is_win(self, posi, player):
+        #row
+        row_s = math.floor(posi/3)
+        row = self.board[row_s * 3:(row_s + 1) * 3]
+        if all([posi == player for posi in row]):  
+            return True
+        #col
+        colm_s = posi % 3
+        colm = [self.board[colm_s + (i * 3)] for i in range(3)]
+        if all([posi == player for posi in colm]):
+            return True
+        #diag
+        for dia_s in [0,2]:
+            k = 4 - dia_s
+            dia = [self.board[dia_s+(i*k)] for i in range(3)]
+            if all([posi == player for posi in dia]):
+                return True  
+
+
+    def isempty_left(self):
+        if " " in self.board:
+            return True
+  
+      
+    def empty_posi(self):
+        return [po for po, pl in enumerate(self.board) if pl == " "]                           
+  
+    
+    def num_empty_posi(self):
+        return self.board.count(" ")
+
+           
+        
+class com_player():
+    def __init__(self, letter):
+        self.letter = letter
+
+
+    def get_move(self,game):
+        if game.num_empty_posi() == 9:
+            position = random.choice(game.empty_posi())
+        else:
+            position = self.minimax(game, self.letter)["posi"]
+        return position
+        
+        
+    def minimax(self, game, player):
+        maxplayer = self.letter
+        o_player = "O" if player == "X" else "X"
+        #win check after make_move
+        if game.winner == o_player:
+            if o_player == maxplayer:
+                return {"posi":None, "score":1*(game.num_empty_posi()+1)}
+            else:
+                return {"posi":None, "score":-1*(game.num_empty_posi()+1)}
+        elif not game.isempty_left():
+            return {"posi":None, "score":0}
+        #minimum score of players
+        if player == maxplayer:
+            best = {"posi":None, "score":-1000}
+        else:
+            best = {"posi":None, "score":1000}
+
+        for posi in game.empty_posi():
+            game.make_move(posi, player)
+            temp_best = self.minimax(game, o_player) #simulating game                 
+            #back track
+            game.board[posi] = " "
+            game.winner = None                     
+            if player == maxplayer:#maximizing score
+                if temp_best["score"] > best["score"]:
+                    best["score"] = temp_best["score"]
+                    best["posi"] = posi
+            else:#minimizing 
+                if temp_best["score"] < best["score"]:
+                    best["score"] = temp_best["score"]
+                    best["posi"] = posi  
+        return best
+            
+
+
+class hum_player(): 
+    def __init__(self, letter):
+        self.letter = letter
+    
+    
+    def get_move(self, game):     
+        try:
+            position = int(input("\nmake move human, (0,8): "))           
+        except:
+            print("only number from 0-8 is allowed\ntry again")
+            position = self.get_move(game) 
+        try:
+            if game.board[position] != " ":
+                print("position is full\ntry again")
+                position = self.get_move(game)                 
+        except:
+            print("only number from 0-8 is allowed\ntry again")
+            position = self.get_move(game)
+      
+        return position    
+
+
+
+def start_game(game, x_player, o_player): 
+    print("___Tic Tac Toe___")
+    print(" ")
+    print("board position instruction")
+    game.print_posi()
+    print("\nstart game\n")
+    game.print_board()
+    print(" ")
+    
+    player = "X"
+    while game.isempty_left():    
+        if player == "O":
+            position = o_player.get_move(game)
+        else: 
+            position = x_player.get_move(game)
+        
+        game.make_move(position, player)
+        print(" ")
+        print(player + f"played in {position}")
+        print(" ")
+        game.print_board()
+        if game.is_win(position, player):
+            print(f"\n{player} wins")
+            return player
+            
+        player = "O" if player == "X" else "X"    
+    print("\ngame draw")   
+    
+    
+    
+if __name__ == "__main__":
+  ttt = TicTacToe()
+  x_player = com_player("X")
+  o_player = hum_player("O")
+  start_game(ttt, x_player, o_player)
