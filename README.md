@@ -2,7 +2,7 @@
 
 two versions of command line tic tac toe 
 
-with simple ai - check the empty positions if win play
-                 there else random selection
+with simple ai - 
+           
 
 with unbeatable ai - minimax algorithm
